@@ -46,6 +46,30 @@ class MigrationDataTest {
                 .isEqualByComparingTo("85");
     }
 
+    @Test
+    void bothApplicationVersionsCanWriteNamesUntilContract() {
+        flyway("2").migrate();
+        jdbc.update("INSERT INTO customers(full_name) VALUES ('Anna Maria Ivanova'), ('Cher')");
+        flyway("3").migrate();
+        assertThat(jdbc.queryForList("SELECT last_name FROM customers ORDER BY id", String.class))
+                .containsExactly("Maria Ivanova", "");
+        jdbc.update("INSERT INTO customers(full_name) VALUES ('Old Client')");
+        assertThat(jdbc.queryForObject("SELECT first_name FROM customers WHERE full_name='Old Client'",
+                String.class)).isEqualTo("Old");
+        jdbc.update("INSERT INTO customers(first_name,last_name) VALUES ('New','Client')");
+        assertThat(jdbc.queryForObject("SELECT full_name FROM customers WHERE first_name='New'",
+                String.class)).isEqualTo("New Client");
+        jdbc.update("UPDATE customers SET full_name='Changed Old' WHERE first_name='Old'");
+        assertThat(jdbc.queryForObject("SELECT last_name FROM customers WHERE first_name='Changed'",
+                String.class)).isEqualTo("Old");
+        jdbc.update("UPDATE customers SET last_name='Updated' WHERE first_name='New'");
+        assertThat(jdbc.queryForObject("SELECT full_name FROM customers WHERE first_name='New'",
+                String.class)).isEqualTo("New Updated");
+        flyway(null).migrate();
+        jdbc.update("INSERT INTO customers(first_name,last_name) VALUES ('Final','Client')");
+        assertThat(jdbc.queryForObject("SELECT count(*) FROM customers", Integer.class)).isEqualTo(5);
+    }
+
     private Flyway flyway(String target) {
         var config = Flyway.configure().dataSource(POSTGRES.getJdbcUrl(),
                 POSTGRES.getUsername(), POSTGRES.getPassword()).cleanDisabled(false);

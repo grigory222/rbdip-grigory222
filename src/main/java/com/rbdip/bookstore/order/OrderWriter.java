@@ -18,10 +18,11 @@ public class OrderWriter {
     }
 
     public Order save(CreateOrderRequest request, List<ResolvedItem> resolved) {
-        Customer customer = customers.findByFullNameAndAddressAndPhone(
-                request.customerFullName(), request.customerAddress(), request.customerPhone())
-                .orElseGet(() -> customers.save(new Customer(
-                        request.customerFullName(), request.customerAddress(), request.customerPhone())));
+        Customer candidate = new Customer(
+                request.customerFullName(), request.customerAddress(), request.customerPhone());
+        Customer customer = customers.findByFirstNameAndLastNameAndAddressAndPhone(
+                candidate.getFirstName(), candidate.getLastName(), candidate.getAddress(), candidate.getPhone())
+                .orElseGet(() -> customers.save(candidate));
         Order order = orders.save(new Order(customer, "new"));
         for (ResolvedItem item : resolved) {
             items.save(new OrderItem(order.getId(), item.product(), item.quantity()));
