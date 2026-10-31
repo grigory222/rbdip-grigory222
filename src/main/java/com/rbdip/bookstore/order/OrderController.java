@@ -15,13 +15,11 @@ public class OrderController {
 
     private final OrderService orderService;
     private final OrderRepository orderRepository;
-    private final OrderItemRepository orderItemRepository;
 
     public OrderController(
-            OrderService orderService, OrderRepository orderRepository, OrderItemRepository orderItemRepository) {
+            OrderService orderService, OrderRepository orderRepository) {
         this.orderService = orderService;
         this.orderRepository = orderRepository;
-        this.orderItemRepository = orderItemRepository;
     }
 
     @PostMapping("/orders")
@@ -37,9 +35,7 @@ public class OrderController {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
                 .map(order -> {
-                    // N+1: отдельный запрос на позиции для каждого заказа вместо
-                    // одного JOIN FETCH / batch-запроса. Цель для ЛР4.
-                    List<OrderItem> items = orderItemRepository.findByOrderId(order.getId());
+                    List<OrderItem> items = order.getItems();
                     return Map.<String, Object>of(
                             "id", order.getId(),
                             "customerFullName", order.getCustomerFullName(),

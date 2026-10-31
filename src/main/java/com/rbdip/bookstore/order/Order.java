@@ -4,6 +4,9 @@ import com.rbdip.bookstore.customer.Customer;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import java.util.List;
+import java.util.ArrayList;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -23,6 +26,10 @@ public class Order {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
+
+    @OneToMany
+    @JoinColumn(name = "order_id", insertable = false, updatable = false)
+    private List<OrderItem> items = new ArrayList<>();
 
     @Column(nullable = false)
     private String status;
@@ -53,6 +60,10 @@ public class Order {
 
     public String getCustomerPhone() {
         return customer.getPhone();
+    }
+
+    public List<OrderItem> getItems() {
+        return List.copyOf(items);
     }
 
     public String getStatus() {
