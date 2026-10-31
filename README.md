@@ -59,3 +59,36 @@ CI (`.github/workflows/ci.yml`) при каждом push прогоняет по
 формирует `score.json` с баллами по гейтам — подробности в тематическом плане курса.
 Финальная сводная ведомость собирается автоматически отдельным сервисным
 репозиторием, вручную ничего проверять не нужно.
+
+## Выполненные лабораторные
+
+Изменения идут последовательно, по одному коммиту на лабораторную:
+
+- ЛР1: OrderValidator, OrderWriter и OrderNotifier отделены от координации заказа;
+  скидки вынесены в именованные константы, порядок расчёта сохранён.
+- ЛР2: V2 переносит контакты в customers, позиции связывает с products.
+  Добавлены характеризационные тесты цены, проверки API и переноса старых данных.
+- ЛР3: V3 добавляет части имени, backfill и двусторонний триггер; V4 удаляет
+  старое поле. Порядок обновления работающего приложения — в
+  [инструкции по миграции](docs/MIGRATION_ROLLOUT.md).
+- ЛР4: EntityGraph загружает граф заказа одним запросом. ReviewService использует
+  публичный PurchaseHistory; реализация и запрос остаются в order.
+- ЛР5: дополнительные границы скидок, тесты контракта отзывов и полный прогон PIT.
+
+Проверка (нужны JDK 21, Maven и работающий Docker):
+
+```bash
+export JAVA_HOME=/usr/lib/jvm/java-21-openjdk-amd64 # или путь к своей JDK 21
+export JAVA_TOOL_OPTIONS=-Dapi.version=1.44
+mvn clean verify -Dmaven.test.failure.ignore=false
+mvn org.pitest:pitest-maven:mutationCoverage
+python3 scripts/write_score.py
+```
+
+Параметр api.version нужен для совместимости Testcontainers из шаблона с
+современным Docker. Он также задан в CI. Пороги, эталонные тесты, V1 и скрипт
+подсчёта баллов сохранены.
+
+Отчёты: `target/site/jacoco/index.html`, `target/pit-reports/index.html`,
+`target/surefire-reports/`; итоговые баллы — `score.json` (локальный результат,
+в Git не добавляется). GitHub Actions публикует те же данные артефактами.

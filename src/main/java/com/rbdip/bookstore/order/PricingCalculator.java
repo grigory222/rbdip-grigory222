@@ -3,11 +3,14 @@ package com.rbdip.bookstore.order;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
-
 import org.springframework.stereotype.Component;
 
 @Component
 public class PricingCalculator {
+    private static final String VIP = "vip";
+    private static final String WHOLESALE = "wholesale";
+    private static final String FIXED_COUPON = "SAVE10";
+    private static final String PERCENT_COUPON = "SAVE20PERCENT";
     private static final int BULK_QUANTITY = 10;
     private static final BigDecimal BULK_FACTOR = new BigDecimal("0.95");
     private static final BigDecimal VIP_FACTOR = new BigDecimal("0.9");
@@ -22,15 +25,15 @@ public class PricingCalculator {
     public BigDecimal calculateOrderTotal(List<LineItem> items, String customerType, String couponCode) {
         BigDecimal total = subtotal(items);
 
-        if ("vip".equals(customerType)) {
+        if (VIP.equals(customerType)) {
             total = total.multiply(VIP_FACTOR);
-        } else if ("wholesale".equals(customerType)) {
+        } else if (WHOLESALE.equals(customerType)) {
             total = total.multiply(WHOLESALE_FACTOR);
         }
 
-        if ("SAVE10".equals(couponCode)) {
+        if (FIXED_COUPON.equals(couponCode)) {
             total = total.subtract(BigDecimal.TEN);
-        } else if ("SAVE20PERCENT".equals(couponCode)) {
+        } else if (PERCENT_COUPON.equals(couponCode)) {
             total = total.multiply(COUPON_FACTOR);
         }
 
@@ -44,6 +47,7 @@ public class PricingCalculator {
 
         return total.setScale(2, RoundingMode.HALF_UP);
     }
+
     private BigDecimal subtotal(List<LineItem> items) {
         BigDecimal total = BigDecimal.ZERO;
 
@@ -57,5 +61,4 @@ public class PricingCalculator {
 
         return total;
     }
-
 }
