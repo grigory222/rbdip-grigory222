@@ -1,6 +1,7 @@
 package com.rbdip.bookstore.order;
 
 import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -31,6 +32,7 @@ public class OrderController {
     }
 
     @GetMapping("/orders")
+    @Transactional(readOnly = true)
     public List<Map<String, Object>> listOrders() {
         List<Order> orders = orderRepository.findAll();
         return orders.stream()
